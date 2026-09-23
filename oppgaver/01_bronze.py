@@ -12,6 +12,33 @@
 # MAGIC
 # MAGIC Før vi kan analysere eller predikere noe, må vi bygge et pålitelig datagrunnlag.
 # MAGIC
+# MAGIC ## Dataene i kurset
+# MAGIC
+# MAGIC Kurset bruker et lite, frosset uttrekk av faktiske åpne data. Filene ligger i
+# MAGIC repoet slik at alle deltakere får identisk input og kurset ikke er avhengig av
+# MAGIC eksterne tjenester mens det pågår.
+# MAGIC
+# MAGIC **Fangst og fartøy – Fiskeridirektoratet**
+# MAGIC [Åpne fangstdata (seddel) koblet med fartøydata](https://www.fiskeridir.no/statistikk-tall-og-analyse/data-og-statistikk-om-yrkesfiske/apne-data-fangstdata-seddel-koblet-med-fartoydata)
+# MAGIC
+# MAGIC - Én kilderad er en varelinje på et landingsdokument.
+# MAGIC - Uttrekket dekker torsk, hyse og sei i seks fangstområder.
+# MAGIC - 2024 brukes til trening. Fire hele uker i januar 2025 brukes som holdout.
+# MAGIC - Dataene inneholder faktisk kobling mellom landing og fartøy via `Fartøy ID`.
+# MAGIC - Fartøydata omfatter blant annet type, lengde, bredde, bruttotonnasje,
+# MAGIC   byggeår, motorkraft, hjemkommune og nasjonalitet.
+# MAGIC
+# MAGIC For å holde repoet lite tar byggejobben inntil åtte gyldige varelinjer per
+# MAGIC uke × art × område. Den beholder også enkelte ekte kvalitetsproblemrader som
+# MAGIC deltakerne skal håndtere i Silver.
+# MAGIC
+# MAGIC **Havforhold – Open-Meteo Marine**
+# MAGIC [Marine Weather API](https://open-meteo.com/en/docs/marine-weather-api)
+# MAGIC
+# MAGIC Daglige modellverdier for havtemperatur, bølgehøyde og strømhastighet hentes
+# MAGIC for ett representativt punkt per fangstområde. De brukes som analysefeatures,
+# MAGIC ikke til navigasjon. Kalenderdata genereres lokalt.
+# MAGIC
 # MAGIC #### Medallion-arkitektur
 # MAGIC Gjennom kurset følger vi medallion-arkitekturen:
 # MAGIC

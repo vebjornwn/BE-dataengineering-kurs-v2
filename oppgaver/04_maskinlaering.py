@@ -19,6 +19,18 @@
 # MAGIC Vi bruker samme modell for alle.
 # MAGIC
 # MAGIC **Lavest WMAPE på testperioden vinner.**
+# MAGIC
+# MAGIC ## Datagrunnlag og tidspunkt
+# MAGIC
+# MAGIC Én rad i feature-tabellen er én uke × én art × ett fangstområde. Fangst- og
+# MAGIC fartøydata kommer fra Fiskeridirektoratets åpne landingsdata, havdata fra
+# MAGIC Open-Meteo Marine og sesongfelter fra kurskalenderen.
+# MAGIC
+# MAGIC Fartøyfeatures beskriver den aktive flåten i uke *t*: antall fartøy,
+# MAGIC gjennomsnittlig lengde og motorkraft.
+# MAGIC
+# MAGIC Modellen predikerer fangst i uke *t+1*. Den får aldri se fartøyaktivitet eller
+# MAGIC flåteegenskaper fra uken den skal predikere. Dette er viktig for å unngå datalekkasje.
 
 # COMMAND ----------
 
