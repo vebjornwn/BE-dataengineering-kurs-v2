@@ -5,7 +5,7 @@ Dette scriptet er for kursholder / vedlikehold av kurset.
 Det skal IKKE kjøres av deltakerne i Databricks.
 
 Avhengigheter:
-    pip install pandas requests openpyxl
+    pip install pandas openpyxl
 
 Merk:
 - Fiskeridirektoratets 2024-fil er stor. Scriptet leser den i chunks.
@@ -17,14 +17,14 @@ Merk:
 
 from __future__ import annotations
 
-import io
 import json
 import math
+import urllib.parse
+import urllib.request
 import zipfile
 from pathlib import Path
 
 import pandas as pd
-import requests
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -63,9 +63,12 @@ def download(url: str, path: Path) -> Path:
         return path
 
     print(f"Laster ned: {url}")
-    response = requests.get(url, timeout=180)
-    response.raise_for_status()
-    path.write_bytes(response.content)
+    request = urllib.request.Request(
+        url,
+        headers={"User-Agent": "BE-dataengineering-kurs-v2/1.0"},
+    )
+    with urllib.request.urlopen(request, timeout=180) as response:
+        path.write_bytes(response.read())
     return path
 
 
@@ -78,7 +81,19 @@ def first_existing(columns, candidates):
     return None
 
 
-def bygg_landinger() -> set[str]:
+def to_number(values: pd.Series) -> pd.Series:
+    """Parse tall som kan bruke norsk desimalskilletegn og mellomrom."""
+
+    normalized = (
+        values.astype("string")
+        .str.replace("\u00a0", "", regex=False)
+        .str.replace(" ", "", regex=False)
+        .str.replace(",", ".", regex=False)
+    )
+    return pd.to_numeric(normalized, errors="coerce")
+
+
+def bygg_landinger() -> pd.DataFrame:
     """Lag et lite, sesongdekkende uttrekk av 2024-fangstdata."""
 
     zip_path = download(FANGST_URL, CACHE / "fangstdata_2024.csv.zip")
@@ -106,6 +121,17 @@ def bygg_landinger() -> set[str]:
                     "Linjenummer",
                     "Landingsdato",
                     "Fartøy ID",
+                    "Registreringsmerke (seddel)",
+                    "Fartøynavn",
+                    "Fartøytype",
+                    "Fartøykommune",
+                    "Fartøynasjonalitet",
+                    "Største lengde",
+                    "Lengdegruppe",
+                    "Bruttotonnasje 1969",
+                    "Bruttotonnasje annen",
+                    "Byggeår",
+                    "Motorkraft",
                     "Art FAO (kode)",
                     "Art FAO",
                     "Hovedområde (kode)",
@@ -151,25 +177,33 @@ def bygg_landinger() -> set[str]:
     df = df[df["Landingsdato_dt"].dt.year == 2024].copy()
 
     df["uke"] = df["Landingsdato_dt"].dt.isocalendar().week.astype(int)
+    df["Rundvekt_num"] = to_number(df["Rundvekt"])
 
-    # Maks 8 varelinjer per uke x art x hovedområde.
-    # Dette holder repoet lite, men bevarer hele sesongen.
-    df = (
-        df.sort_values(
-            [
-                "uke",
-                "Art FAO (kode)",
-                "Hovedområde (kode)",
-                "Landingsdato_dt",
-            ]
-        )
-        .groupby(
-            ["uke", "Art FAO (kode)", "Hovedområde (kode)"],
-            group_keys=False,
-        )
+    grain = ["uke", "Art FAO (kode)", "Hovedområde (kode)"]
+    sort_columns = grain + ["Landingsdato_dt", "Dokumentnummer", "Linjenummer"]
+
+    # Åtte gyldige varelinjer per uke x art x hovedområde gir et kompakt uttrekk
+    # med sammenhengende tidsserier. Vi tar i tillegg med én ekte ugyldig rad
+    # der kilden har den, slik at Silver-oppgaven fortsatt har datakvalitet å rydde.
+    valid = df[
+        df["Fartøy ID"].notna()
+        & df["Fartøy ID"].astype(str).str.strip().ne("")
+        & (df["Rundvekt_num"] > 0)
+    ]
+    invalid = df.drop(valid.index)
+
+    valid_sample = (
+        valid.sort_values(sort_columns)
+        .groupby(grain, group_keys=False)
         .head(8)
-        .copy()
     )
+    invalid_sample = (
+        invalid.sort_values(sort_columns)
+        .groupby(grain, group_keys=False)
+        .head(1)
+    )
+    df = pd.concat([valid_sample, invalid_sample], ignore_index=True)
+    df = df.sort_values(sort_columns).copy()
 
     df["Seddelnummer"] = (
         df["Salgslag (kode)"].fillna("X").astype(str)
@@ -191,10 +225,7 @@ def bygg_landinger() -> set[str]:
             "Fangstområde (kode)": df["Hovedområde (kode)"],
             "Fangstområde (navn)": df["Hovedområde"],
             "Redskap (kode)": df["Redskap (kode)"],
-            "Rundvekt (kg)": pd.to_numeric(
-                df["Rundvekt"],
-                errors="coerce",
-            ),
+            "Rundvekt (kg)": df["Rundvekt_num"],
         }
     )
 
@@ -202,12 +233,43 @@ def bygg_landinger() -> set[str]:
     out.to_csv(path, sep=";", index=False, encoding="utf-8")
     print(f"Skrev {len(out):,} rader -> {path}")
 
-    return set(out["Fartøy ID"].dropna().astype(str))
+    return df
 
 
-def bygg_fartoy(selected_ids: set[str]) -> None:
-    """Bygg masterdata for fartøy som faktisk finnes i kursuttrekket."""
+def bygg_fartoy(fangstuttrekk: pd.DataFrame) -> None:
+    """Bygg fartøymaster fra samme offisielle rader som landingene."""
 
+    source_columns = [
+        "Fartøy ID",
+        "Registreringsmerke (seddel)",
+        "Fartøynavn",
+        "Fartøytype",
+        "Fartøykommune",
+        "Fartøynasjonalitet",
+        "Største lengde",
+        "Lengdegruppe",
+        "Bruttotonnasje 1969",
+        "Bruttotonnasje annen",
+        "Byggeår",
+        "Motorkraft",
+        "Landingsdato_dt",
+    ]
+    source = fangstuttrekk[source_columns].copy()
+    source = source[
+        source["Fartøy ID"].notna()
+        & source["Fartøy ID"].astype(str).str.strip().ne("")
+    ]
+    source["Fartøy ID"] = source["Fartøy ID"].astype(str)
+
+    # Nyeste registrerte verdi vinner, men groupby.first henter en eldre verdi
+    # dersom akkurat den nyeste varelinjen mangler et enkelt attributt.
+    source = (
+        source.sort_values("Landingsdato_dt", ascending=False)
+        .groupby("Fartøy ID", as_index=False)
+        .first()
+    )
+
+    # Bredde finnes ikke i fangstfilen. Den berikes derfor fra merkeregisteret.
     xlsx_path = download(FARTOY_URL, CACHE / "fartoy_eier.xlsx")
     excel = pd.ExcelFile(xlsx_path)
 
@@ -223,21 +285,11 @@ def bygg_fartoy(selected_ids: set[str]) -> None:
     df = pd.read_excel(xlsx_path, sheet_name=sheet)
 
     id_col = first_existing(df.columns, ["Fartøy ID"])
-    length_col = first_existing(df.columns, ["Største lengde", "Lengde"])
     width_col = first_existing(df.columns, ["Bredde"])
-    build_col = first_existing(df.columns, ["Byggeår - fartøy", "Byggeår"])
-    power_col = first_existing(df.columns, ["Motorkraft"])
-    municipality_col = first_existing(
-        df.columns,
-        ["Fartøykommune", "Kommune", "Kommunenavn"],
-    )
 
     required = {
         "Fartøy ID": id_col,
-        "Største lengde": length_col,
         "Bredde": width_col,
-        "Byggeår": build_col,
-        "Motorkraft": power_col,
     }
     missing = [name for name, col in required.items() if col is None]
     if missing:
@@ -247,10 +299,18 @@ def bygg_fartoy(selected_ids: set[str]) -> None:
             + f"\nTilgjengelige kolonner: {list(df.columns)}"
         )
 
-    x = df[df[id_col].astype(str).isin(selected_ids)].copy()
+    width = df[[id_col, width_col]].copy()
+    width[id_col] = width[id_col].astype(str)
+    width[width_col] = pd.to_numeric(width[width_col], errors="coerce")
+    width = width.groupby(id_col, as_index=False)[width_col].first()
+    width = width.rename(columns={id_col: "Fartøy ID", width_col: "Bredde (meter)"})
+    source = source.merge(width, on="Fartøy ID", how="left")
 
-    length = pd.to_numeric(x[length_col], errors="coerce")
-    hp = pd.to_numeric(x[power_col], errors="coerce")
+    length = to_number(source["Største lengde"])
+    hp = to_number(source["Motorkraft"])
+    gross_tonnage = to_number(source["Bruttotonnasje 1969"]).fillna(
+        to_number(source["Bruttotonnasje annen"])
+    )
 
     # Enkel forretningsvennlig gruppe til workshop.
     group = pd.cut(
@@ -261,20 +321,22 @@ def bygg_fartoy(selected_ids: set[str]) -> None:
 
     out = pd.DataFrame(
         {
-            "Fartøy ID": x[id_col].astype(str),
+            "Fartøy ID": source["Fartøy ID"],
+            "Registreringsmerke": source["Registreringsmerke (seddel)"],
+            "Fartøynavn": source["Fartøynavn"],
+            "Fartøytype": source["Fartøytype"],
             "Fartøygruppe": group.astype(str),
             "Lengde (meter)": length,
-            "Bredde (meter)": pd.to_numeric(x[width_col], errors="coerce"),
-            "Byggeår": pd.to_numeric(x[build_col], errors="coerce"),
-            # Merkeregisteret dokumenterer Motorkraft i HK.
+            "Lengdegruppe": source["Lengdegruppe"],
+            "Bredde (meter)": source["Bredde (meter)"],
+            "Bruttotonnasje": gross_tonnage,
+            "Byggeår": to_number(source["Byggeår"]),
+            # Fangstfilen dokumenterer Motorkraft i HK.
             "Motorkraft (kW)": hp / 1.36,
-            "Hjemkommune": (
-                x[municipality_col].astype(str)
-                if municipality_col is not None
-                else ""
-            ),
+            "Hjemkommune": source["Fartøykommune"],
+            "Nasjonalitet": source["Fartøynasjonalitet"],
         }
-    )
+    ).sort_values("Fartøy ID")
 
     path = OUT / "fartoy_2024.csv"
     out.to_csv(path, index=False, encoding="utf-8")
@@ -306,13 +368,13 @@ def bygg_havforhold() -> None:
             "cell_selection": "sea",
         }
 
-        response = requests.get(
-            "https://marine-api.open-meteo.com/v1/marine",
-            params=params,
-            timeout=180,
+        query = urllib.parse.urlencode(params)
+        request = urllib.request.Request(
+            "https://marine-api.open-meteo.com/v1/marine?" + query,
+            headers={"User-Agent": "BE-dataengineering-kurs-v2/1.0"},
         )
-        response.raise_for_status()
-        payload = response.json()
+        with urllib.request.urlopen(request, timeout=180) as response:
+            payload = json.load(response)
 
         hourly = pd.DataFrame(payload["hourly"])
         hourly["time"] = pd.to_datetime(hourly["time"])
@@ -406,8 +468,8 @@ def bygg_kalender() -> None:
 
 
 def main() -> None:
-    selected_ids = bygg_landinger()
-    bygg_fartoy(selected_ids)
+    fangstuttrekk = bygg_landinger()
+    bygg_fartoy(fangstuttrekk)
     bygg_havforhold()
     bygg_kalender()
 

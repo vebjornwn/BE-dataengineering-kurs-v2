@@ -85,11 +85,11 @@ DAB er distribusjonsmekanismen, men er bevisst **ikke** en kritisk avhengighet f
 
 ## Kursdata
 
-Repoet inneholder et lite, frosset 2024-datasett slik at workshopen er reproducerbar og ikke er avhengig av eksterne API-er under gjennomføring.
+Repoet inneholder et lite, frosset uttrekk av faktiske 2024-data slik at workshopen er reproducerbar og ikke er avhengig av eksterne API-er under gjennomføring.
 
-Datasettet har samme struktur og problemtyper som de åpne kildene beskrevet i `forberedelser/KILDER.md`.
+Landingene og fartøyopplysningene kommer fra Fiskeridirektoratets åpne fangstdata koblet med fartøydata. Fartøybredde berikes fra merkeregisteret, og havforhold kommer fra Open-Meteo Marine. Se `forberedelser/KILDER.md` for kilder, avgrensninger og regenerering.
 
-Den endelige kursversjonen skal kunne regenereres fra åpne kilder før gjennomføring.
+Uttrekket kan regenereres fra åpne kilder før gjennomføring med `forberedelser/bygg_kursdata.py`.
 
 ## Konkurranse
 

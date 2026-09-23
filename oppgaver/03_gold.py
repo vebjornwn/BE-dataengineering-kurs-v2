@@ -185,6 +185,10 @@ fact_landinger.write.mode("overwrite").saveAsTable(
 # MAGIC - gjennomsnittlig motorkraft
 # MAGIC
 # MAGIC Deretter skal havdata joines inn på samme ukentlige grain.
+# MAGIC
+# MAGIC Merk at ett fartøy kan ha flere varelinjer samme uke. Beregn derfor
+# MAGIC flåteegenskapene på **unike fartøy per uke × art × område**, slik at en båt
+# MAGIC ikke får større vekt bare fordi landingen har flere varelinjer.
 
 # COMMAND ----------
 
@@ -227,23 +231,41 @@ landinger_med_fartoy = (
         )
 )
 
-fangst_uke = (
+uke_grain = [
+    "uke_start",
+    "art_kode",
+    "art_navn",
+    "fangstomrade_kode",
+    "fangstomrade_navn",
+]
+
+fangst_volum_uke = (
     landinger_med_fartoy
-        .groupBy(
-            "uke_start",
-            "art_kode",
-            "art_navn",
-            "fangstomrade_kode",
-            "fangstomrade_navn",
-        )
+        .groupBy(*uke_grain)
         .agg(
             F.sum("rundvekt_kg").alias("landet_kg"),
             F.countDistinct("seddelnummer").alias("antall_landinger"),
+        )
+)
+
+fartoy_uke = (
+    landinger_med_fartoy
+        .select(
+            *uke_grain,
+            "fartoy_id",
+            "lengde_meter",
+            "motorkraft_kw",
+        )
+        .dropDuplicates(uke_grain + ["fartoy_id"])
+        .groupBy(*uke_grain)
+        .agg(
             F.countDistinct("fartoy_id").alias("aktive_fartoy"),
             F.avg("lengde_meter").alias("gjennomsnitt_fartoy_lengde"),
             F.avg("motorkraft_kw").alias("gjennomsnitt_motorkraft_kw"),
         )
 )
+
+fangst_uke = fangst_volum_uke.join(fartoy_uke, uke_grain, "left")
 
 hav_uke = (
     havforhold
@@ -312,6 +334,11 @@ display(mart_fangst_uke.orderBy("uke_start", "art_kode").limit(20))
 # MAGIC - gjennomsnittlig fangst siste 4 uker
 # MAGIC - sykliske sesongfeatures (`uke_sin`, `uke_cos`)
 # MAGIC - target = landet kg **neste uke**
+# MAGIC
+# MAGIC Hver rad bruker bare informasjon som er kjent ved slutten av den aktuelle
+# MAGIC uken. `aktive_fartoy` og flåteegenskapene beskriver altså uke *t*, mens
+# MAGIC targeten fra `lead()` er fangsten i uke *t+1*. Vi bruker ikke fartøyene som
+# MAGIC faktisk blir aktive i uken vi prøver å predikere.
 
 # COMMAND ----------
 

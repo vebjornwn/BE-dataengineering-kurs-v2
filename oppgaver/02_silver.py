@@ -125,11 +125,13 @@ display(landinger_parsed.limit(10))
 # MAGIC %md
 # MAGIC ## Oppgave 2b – datakvalitet
 # MAGIC
-# MAGIC I kursdataene finnes noen bevisste problemer:
+# MAGIC Kursuttrekket inneholder reelle kvalitetsproblemer fra kilden:
 # MAGIC
-# MAGIC - enkelte sedler er duplisert
-# MAGIC - noen vekter mangler
-# MAGIC - noen fangstområdekoder mangler ledende null
+# MAGIC - noen varelinjer mangler fartøy-ID
+# MAGIC - noen vekter mangler eller er null
+# MAGIC
+# MAGIC I tillegg standardiserer vi områdekoder og beskytter tabellen mot eventuelle
+# MAGIC duplikater i senere regenereringer av uttrekket.
 # MAGIC
 # MAGIC Rydd dataene slik at:
 # MAGIC
@@ -201,12 +203,18 @@ fartoy_raw = spark.read.table(f"{catalog}.bronze.fartoy_raw")
 
 fartoy_parsed = fartoy_raw.select(
     F.try_variant_get("payload", '$["Fartøy ID"]', "string").alias("fartoy_id"),
+    F.try_variant_get("payload", '$["Registreringsmerke"]', "string").alias("registreringsmerke"),
+    F.try_variant_get("payload", '$["Fartøynavn"]', "string").alias("fartoynavn"),
+    F.try_variant_get("payload", '$["Fartøytype"]', "string").alias("fartoytype"),
     F.try_variant_get("payload", '$["Fartøygruppe"]', "string").alias("fartoygruppe"),
     F.try_variant_get("payload", '$["Lengde (meter)"]', "double").alias("lengde_meter"),
+    F.try_variant_get("payload", '$["Lengdegruppe"]', "string").alias("lengdegruppe"),
     F.try_variant_get("payload", '$["Bredde (meter)"]', "double").alias("bredde_meter"),
+    F.try_variant_get("payload", '$["Bruttotonnasje"]', "double").alias("bruttotonnasje"),
     F.try_variant_get("payload", '$["Byggeår"]', "int").alias("byggear"),
     F.try_variant_get("payload", '$["Motorkraft (kW)"]', "double").alias("motorkraft_kw"),
     F.try_variant_get("payload", '$["Hjemkommune"]', "string").alias("hjemkommune"),
+    F.try_variant_get("payload", '$["Nasjonalitet"]', "string").alias("nasjonalitet"),
 )
 
 # Behold én rad per fartøy.
