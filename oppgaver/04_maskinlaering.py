@@ -14,17 +14,13 @@
 # MAGIC
 # MAGIC Modellen er med vilje enkel. Målet er å se at et godt datagrunnlag kan brukes direkte av et data science-team.
 # MAGIC
-# MAGIC ## Konkurranse
-# MAGIC
-# MAGIC Vi bruker samme modell for alle.
-# MAGIC
-# MAGIC **Lavest WMAPE på testperioden vinner.**
+# MAGIC Modellen evalueres på holdout-perioden i januar 2025 med MAE, RMSE og WMAPE.
 # MAGIC
 # MAGIC ## Datagrunnlag og tidspunkt
 # MAGIC
 # MAGIC Én rad i feature-tabellen er én uke × én art × ett fangstområde. Fangst- og
-# MAGIC fartøydata kommer fra Fiskeridirektoratets åpne landingsdata, havdata fra
-# MAGIC Open-Meteo Marine og sesongfelter fra kurskalenderen.
+# MAGIC fartøydata kommer fra Fiskeridirektoratets åpne landingsdata, modellbaserte
+# MAGIC havdata fra Open-Meteo Marine og sesongfelter fra kurskalenderen.
 # MAGIC
 # MAGIC Fartøyfeatures beskriver den aktive flåten i uke *t*: antall fartøy,
 # MAGIC gjennomsnittlig lengde og motorkraft.
@@ -194,8 +190,6 @@ y_pred = model.predict(X_test)
 # MAGIC - **MAE**: gjennomsnittlig absolutt feil i kg
 # MAGIC - **RMSE**: straffer store feil mer
 # MAGIC - **WMAPE**: absolutt feil delt på faktisk totalvolum
-# MAGIC
-# MAGIC For konkurransen bruker vi WMAPE.
 
 # COMMAND ----------
 
@@ -210,9 +204,8 @@ print(f"WMAPE: {wmape:.2f}%")
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC **Konkurranseresultat:** noter WMAPE-en din.
-# MAGIC
-# MAGIC Lavest prosent i rommet vinner.
+# MAGIC Sammen vurderer metrikker i kilo og prosent både den typiske feilen,
+# MAGIC store avvik og total feil relativt til faktisk volum.
 
 # COMMAND ----------
 

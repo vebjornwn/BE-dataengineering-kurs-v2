@@ -91,14 +91,10 @@ Landingene og fartøyopplysningene kommer fra Fiskeridirektoratets åpne fangstd
 
 Uttrekket kan regenereres fra åpne kilder før gjennomføring med `forberedelser/bygg_kursdata.py`.
 
-## Konkurranse
-
-Alle bruker samme Random Forest.
+## Modellevaluering
 
 Modellen trenes på 2024 og resultatet evalueres på fire rullerende ukeprognoser i januar 2025 med:
 
 - MAE
 - RMSE
 - **WMAPE**
-
-Lavest WMAPE vinner.

@@ -39,9 +39,12 @@ print(f"- {catalog}.gold.prediksjoner")
 # MAGIC - landingsmengde per uke, splittet på art
 # MAGIC - landingsmengde per art
 # MAGIC - landingsmengde per fangstområde
-# MAGIC - faktisk vs. predikert landingsmengde
+# MAGIC - faktisk vs. predikert landingsmengde for januar 2025
 # MAGIC - filter på art
 # MAGIC - filter på fangstområde
+# MAGIC
+# MAGIC Historikkgrafene dekker 2024 og januar 2025. Prognosegrafen bruker
+# MAGIC `target_uke_start`, altså datoen for uken som faktisk predikeres.
 # MAGIC
 # MAGIC Dashboardet bruker:
 # MAGIC

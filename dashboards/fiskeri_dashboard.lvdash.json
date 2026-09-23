@@ -24,7 +24,7 @@
       "displayName": "Prognose",
       "queryLines": [
         "SELECT\n",
-        "  uke_start,\n",
+        "  target_uke_start AS uke_start,\n",
         "  art_navn,\n",
         "  fangstomrade_navn,\n",
         "  'Faktisk' AS serie,\n",
@@ -34,7 +34,7 @@
         "UNION ALL\n",
         "\n",
         "SELECT\n",
-        "  uke_start,\n",
+        "  target_uke_start AS uke_start,\n",
         "  art_navn,\n",
         "  fangstomrade_navn,\n",
         "  'Predikert' AS serie,\n",
