@@ -1,0 +1,24 @@
+bundle:
+  name: be-dataengineering-fiskeri
+
+include:
+  - ressurser/*.yml
+
+variables:
+  warehouse_id:
+    description: SQL warehouse som brukes av AI/BI-dashboardet
+    lookup:
+      warehouse: "Serverless Starter Warehouse"
+
+sync:
+  include:
+    - data/raw/**
+    - oppsett/**
+    - oppgaver/**
+  exclude:
+    - dashboards/*.lvdash.json
+
+targets:
+  dev:
+    mode: development
+    default: true

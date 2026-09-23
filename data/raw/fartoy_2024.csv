@@ -1,0 +1,50 @@
+Fartøy ID,Fartøygruppe,Lengde (meter),Bredde (meter),Byggeår,Motorkraft (kW),Hjemkommune
+V0001,Kyst,15.4,4.6,1997,633,Bodø
+V0002,Kyst større,26.7,5.1,2000,938,Vestvågøy
+V0003,Hav,38.1,7.9,2003,1243,Ålesund
+V0004,Kyst,19.5,5.9,2006,889,Bergen
+V0005,Kyst større,30.9,6.3,2009,919,Vågan
+V0006,Hav,42.2,9.2,2012,1224,Hammerfest
+V0007,Kyst,23.6,4.2,2015,869,Måløy
+V0008,Kyst større,35.0,4.6,2018,1174,Tromsø
+V0009,Hav,34.0,7.5,2021,1208,Bodø
+V0010,Kyst,15.4,5.5,1995,578,Vestvågøy
+V0011,Kyst større,26.7,5.9,1998,883,Ålesund
+V0012,Hav,38.1,8.8,2001,1188,Bergen
+V0013,Kyst,19.5,6.8,2004,834,Vågan
+V0014,Kyst større,30.9,4.2,2007,1139,Hammerfest
+V0015,Hav,42.2,7.0,2010,1169,Måløy
+V0016,Kyst,23.6,5.1,2013,814,Tromsø
+V0017,Kyst større,35.0,5.5,2016,1119,Bodø
+V0018,Hav,34.0,8.3,2019,1153,Vestvågøy
+V0019,Kyst,15.4,6.3,2022,798,Ålesund
+V0020,Kyst større,26.7,6.8,1996,828,Bergen
+V0021,Hav,38.1,6.6,1999,1133,Vågan
+V0022,Kyst,19.5,4.6,2002,779,Hammerfest
+V0023,Kyst større,30.9,5.1,2005,1084,Måløy
+V0024,Hav,42.2,7.9,2008,1389,Tromsø
+V0025,Kyst,23.6,5.9,2011,759,Bodø
+V0026,Kyst større,35.0,6.3,2014,1064,Vestvågøy
+V0027,Hav,34.0,9.2,2017,1098,Ålesund
+V0028,Kyst,15.4,4.2,2020,743,Bergen
+V0029,Kyst større,26.7,4.6,1994,1048,Vågan
+V0030,Hav,38.1,7.5,1997,1078,Hammerfest
+V0031,Kyst,19.5,5.5,2000,724,Måløy
+V0032,Kyst større,30.9,5.9,2003,1029,Tromsø
+V0033,Hav,42.2,8.8,2006,1334,Bodø
+V0034,Kyst,23.6,6.8,2009,979,Vestvågøy
+V0035,Kyst større,35.0,4.2,2012,1009,Ålesund
+V0036,Hav,34.0,7.0,2015,1043,Bergen
+V0037,Kyst,15.4,5.1,2018,688,Vågan
+V0038,Kyst større,26.7,5.5,2021,993,Hammerfest
+V0039,Hav,38.1,8.3,1995,1298,Måløy
+V0040,Kyst,19.5,6.3,1998,669,Tromsø
+V0041,Kyst større,30.9,6.8,2001,974,Bodø
+V0042,Hav,42.2,6.6,2004,1279,Vestvågøy
+V0043,Kyst,23.6,4.6,2007,924,Ålesund
+V0044,Kyst større,35.0,5.1,2010,1229,Bergen
+V0045,Hav,34.0,7.9,2013,988,Vågan
+V0046,Kyst,15.4,5.9,2016,633,Hammerfest
+V0047,Kyst større,26.7,6.3,2019,938,Måløy
+V0048,Hav,38.1,9.2,2022,1243,Tromsø
+V0009,Hav,34.0,6.6,2021,1150,Bodø

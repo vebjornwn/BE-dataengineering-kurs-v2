@@ -1,0 +1,585 @@
+{
+  "datasets": [
+    {
+      "name": "historikk",
+      "displayName": "Historisk fangst",
+      "queryLines": [
+        "SELECT\n",
+        "  uke_start,\n",
+        "  art_kode,\n",
+        "  art_navn,\n",
+        "  fangstomrade_kode,\n",
+        "  fangstomrade_navn,\n",
+        "  landet_kg,\n",
+        "  antall_landinger,\n",
+        "  aktive_fartoy,\n",
+        "  havtemperatur_c,\n",
+        "  bolgehoyde_m,\n",
+        "  stromhastighet_ms\n",
+        "FROM mart_fangst_uke"
+      ]
+    },
+    {
+      "name": "prognose",
+      "displayName": "Prognose",
+      "queryLines": [
+        "SELECT\n",
+        "  uke_start,\n",
+        "  art_navn,\n",
+        "  fangstomrade_navn,\n",
+        "  'Faktisk' AS serie,\n",
+        "  landet_kg_neste_uke AS kg\n",
+        "FROM prediksjoner\n",
+        "\n",
+        "UNION ALL\n",
+        "\n",
+        "SELECT\n",
+        "  uke_start,\n",
+        "  art_navn,\n",
+        "  fangstomrade_navn,\n",
+        "  'Predikert' AS serie,\n",
+        "  predikert_kg_neste_uke AS kg\n",
+        "FROM prediksjoner"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "oversikt",
+      "displayName": "Oversikt",
+      "layout": [
+        {
+          "widget": {
+            "name": "tittel",
+            "multilineTextboxSpec": {
+              "lines": [
+                "# Fiskeri – fangst og prognose\n",
+                "Fra Bronze til Gold, maskinlæring og beslutningsstøtte"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 12,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "filter_art",
+            "queries": [
+              {
+                "name": "filter_art_historikk",
+                "query": {
+                  "datasetName": "historikk",
+                  "fields": [
+                    {
+                      "name": "art_navn",
+                      "expression": "`art_navn`"
+                    },
+                    {
+                      "name": "art_navn_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "filter_art_prognose",
+                "query": {
+                  "datasetName": "prognose",
+                  "fields": [
+                    {
+                      "name": "art_navn",
+                      "expression": "`art_navn`"
+                    },
+                    {
+                      "name": "art_navn_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "Art"
+              },
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "art_navn",
+                    "displayName": "Art",
+                    "queryName": "filter_art_historikk"
+                  },
+                  {
+                    "fieldName": "art_navn",
+                    "displayName": "Art",
+                    "queryName": "filter_art_prognose"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 1,
+            "width": 3,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "filter_omrade",
+            "queries": [
+              {
+                "name": "filter_omrade_historikk",
+                "query": {
+                  "datasetName": "historikk",
+                  "fields": [
+                    {
+                      "name": "fangstomrade_navn",
+                      "expression": "`fangstomrade_navn`"
+                    },
+                    {
+                      "name": "fangstomrade_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "filter_omrade_prognose",
+                "query": {
+                  "datasetName": "prognose",
+                  "fields": [
+                    {
+                      "name": "fangstomrade_navn",
+                      "expression": "`fangstomrade_navn`"
+                    },
+                    {
+                      "name": "fangstomrade_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "Fangstområde"
+              },
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "fangstomrade_navn",
+                    "displayName": "Fangstområde",
+                    "queryName": "filter_omrade_historikk"
+                  },
+                  {
+                    "fieldName": "fangstomrade_navn",
+                    "displayName": "Fangstområde",
+                    "queryName": "filter_omrade_prognose"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 1,
+            "width": 3,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_total_kg",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "historikk",
+                  "fields": [
+                    {
+                      "name": "sum(landet_kg)",
+                      "expression": "SUM(`landet_kg`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "Total landingsmengde"
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(landet_kg)",
+                  "displayName": "Totalt kg",
+                  "format": {
+                    "type": "number-plain",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 1
+                    }
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 1,
+            "width": 3,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_aktive_fartoy",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "historikk",
+                  "fields": [
+                    {
+                      "name": "max(aktive_fartoy)",
+                      "expression": "MAX(`aktive_fartoy`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "Maks aktive fartøy / uke"
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "max(aktive_fartoy)",
+                  "displayName": "Fartøy"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 9,
+            "y": 1,
+            "width": 3,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "fangst_per_uke",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "historikk",
+                  "fields": [
+                    {
+                      "name": "uke_start",
+                      "expression": "`uke_start`"
+                    },
+                    {
+                      "name": "sum(landet_kg)",
+                      "expression": "SUM(`landet_kg`)"
+                    },
+                    {
+                      "name": "art_navn",
+                      "expression": "`art_navn`"
+                    }
+                  ],
+                  "disaggregated": false,
+                  "orders": [
+                    {
+                      "direction": "ASC",
+                      "expression": "`uke_start`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "showTitle": true,
+                "title": "Landingsmengde per uke"
+              },
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "uke_start",
+                  "displayName": "Uke",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(landet_kg)",
+                  "displayName": "Kg",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "art_navn",
+                  "displayName": "Art",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "legend": {
+                    "position": "bottom"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 3,
+            "width": 8,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "fordeling_art",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "historikk",
+                  "fields": [
+                    {
+                      "name": "art_navn",
+                      "expression": "`art_navn`"
+                    },
+                    {
+                      "name": "sum(landet_kg)",
+                      "expression": "SUM(`landet_kg`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "showTitle": true,
+                "title": "Landingsmengde per art"
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "art_navn",
+                  "displayName": "Art",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(landet_kg)",
+                  "displayName": "Kg",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 8,
+            "y": 3,
+            "width": 4,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "fordeling_omrade",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "historikk",
+                  "fields": [
+                    {
+                      "name": "fangstomrade_navn",
+                      "expression": "`fangstomrade_navn`"
+                    },
+                    {
+                      "name": "sum(landet_kg)",
+                      "expression": "SUM(`landet_kg`)"
+                    }
+                  ],
+                  "disaggregated": false,
+                  "orders": [
+                    {
+                      "direction": "DESC",
+                      "expression": "SUM(`landet_kg`)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "showTitle": true,
+                "title": "Landingsmengde per fangstområde"
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "fangstomrade_navn",
+                  "displayName": "Fangstområde",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(landet_kg)",
+                  "displayName": "Kg",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 8,
+            "width": 6,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "faktisk_vs_predikert",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "prognose",
+                  "fields": [
+                    {
+                      "name": "uke_start",
+                      "expression": "`uke_start`"
+                    },
+                    {
+                      "name": "sum(kg)",
+                      "expression": "SUM(`kg`)"
+                    },
+                    {
+                      "name": "serie",
+                      "expression": "`serie`"
+                    }
+                  ],
+                  "disaggregated": false,
+                  "orders": [
+                    {
+                      "direction": "ASC",
+                      "expression": "`uke_start`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "showTitle": true,
+                "title": "Faktisk vs. predikert landingsmengde"
+              },
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "uke_start",
+                  "displayName": "Uke",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(kg)",
+                  "displayName": "Kg",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "serie",
+                  "displayName": "Serie",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "legend": {
+                    "position": "bottom"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 8,
+            "width": 6,
+            "height": 5
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "widgetHeaderAlignment": "ALIGNMENT_UNSPECIFIED"
+    },
+    "applyModeEnabled": false
+  }
+}

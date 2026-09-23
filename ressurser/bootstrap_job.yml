@@ -1,0 +1,10 @@
+resources:
+  jobs:
+    bootstrap_fiskeri:
+      name: "[${bundle.target}] Fiskeri - bootstrap"
+      queue:
+        enabled: true
+      tasks:
+        - task_key: bootstrap
+          notebook_task:
+            notebook_path: ../oppsett/00_bootstrap.py

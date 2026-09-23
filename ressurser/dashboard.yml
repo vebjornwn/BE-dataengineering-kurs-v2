@@ -1,0 +1,8 @@
+resources:
+  dashboards:
+    fiskeri_dashboard:
+      display_name: "Fiskeri – fangst og prognose"
+      file_path: ../dashboards/fiskeri_dashboard.lvdash.json
+      warehouse_id: ${var.warehouse_id}
+      dataset_schema: gold
+      embed_credentials: false
