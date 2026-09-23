@@ -398,6 +398,12 @@ mart_fangstprognose = (
             F.cos(F.lit(2 * math.pi) * F.col("ukenummer") / F.lit(52.0)),
         )
         .withColumn(
+            "target_uke_start",
+            F.date_add("uke_start", 7),
+        )
+        .withColumn("target_aar", F.year("target_uke_start"))
+        .withColumn("target_maaned", F.month("target_uke_start"))
+        .withColumn(
             "landet_kg_neste_uke",
             F.lead("landet_kg", 1).over(serie_vindu),
         )

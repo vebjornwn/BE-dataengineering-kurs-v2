@@ -72,10 +72,10 @@ for src in files:
 # COMMAND ----------
 
 expected = {
-    "landinger_2024.csv",
-    "fartoy_2024.csv",
-    "havforhold_2024.jsonl",
-    "kalender_2024.csv",
+    "landinger_kurs.csv",
+    "fartoy_kurs.csv",
+    "havforhold_kurs.jsonl",
+    "kalender_kurs.csv",
 }
 actual = {p.name for p in volume_dir.iterdir() if p.is_file()}
 missing = expected - actual

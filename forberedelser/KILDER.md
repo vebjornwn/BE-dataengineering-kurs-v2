@@ -1,6 +1,6 @@
 # Datakilder og regenerering av kursdata
 
-Repoet inneholder et frosset 2024-uttrekk for å gjøre kurset raskt og reproducerbart.
+Repoet inneholder et frosset uttrekk for 2024 og januar 2025 for å gjøre kurset raskt og reproducerbart.
 
 Under selve kurset skal deltakerne **ikke** laste ned store eksterne datasett.
 
@@ -10,15 +10,17 @@ Offisiell side:
 
 https://www.fiskeridir.no/statistikk-tall-og-analyse/data-og-statistikk-om-yrkesfiske/apne-data-fangstdata-seddel-koblet-med-fartoydata
 
-Direkte 2024-fil:
+Direkte årsfilmer:
 
 https://register.fiskeridir.no/uttrekk/fangstdata_2024.csv.zip
+
+https://register.fiskeridir.no/uttrekk/fangstdata_2025.csv.zip
 
 Kilden er UTF-8 CSV med semikolon og én fil per fangstår.
 
 For kursversjonen brukes et lite, sesongdekkende uttrekk:
 
-- 2024
+- 2024 til trening og data til og med 2. februar 2025 for å evaluere fire hele januaruker
 - torsk, hyse og sei
 - utvalgte fangstområder
 - inntil åtte gyldige varelinjer per uke, art og fangstområde
@@ -34,7 +36,7 @@ Offisiell side:
 https://www.fiskeridir.no/statistikk-tall-og-analyse/data-og-statistikk-om-yrkesfiske/apne-data-fiskere-fartoy-og-fisketillatelser
 
 Fangstfilen er allerede koblet med fartøydata på fangstdatoen. Det frosne
-`fartoy_2024.csv` bygges derfor primært fra de samme radene som kurslandingene.
+`fartoy_kurs.csv` bygges derfor primært fra de samme radene som kurslandingene.
 Dette sikrer at alle ikke-tomme fartøy-ID-er i kursuttrekket kan kobles til en
 faktisk båt. Bredde, som ikke finnes i fangstfilen, berikes fra merkeregisterets
 XLSX-fil med årsark.
@@ -53,7 +55,7 @@ Til kurset beholdes:
 - hjemkommune
 
 Fartøymasteren har én rad per fartøy. Ved flere observasjoner brukes de nyeste
-registrerte verdiene i 2024-uttrekket, med eldre ikke-tomme verdier som fallback
+registrerte verdiene i kursuttrekket, med eldre ikke-tomme verdier som fallback
 for enkeltfelter.
 
 ## 3. Havforhold – Open-Meteo Marine
@@ -64,9 +66,9 @@ https://open-meteo.com/en/docs/marine-weather-api
 
 Relevante variabler:
 
-- sea_water_temperature
-- sea_surface_wave_height
-- sea_water_speed
+- sea_surface_temperature
+- wave_height
+- ocean_current_velocity
 
 Historiske data skal preprosesseres **før** kurset til:
 
@@ -83,7 +85,7 @@ Kursfilen lagres som JSON Lines slik at deltakerne får en semi-strukturert kild
 
 ## 4. Kalender
 
-Genereres lokalt for hele 2024.
+Genereres lokalt fra 1. januar 2024 til 2. februar 2025.
 
 Inneholder blant annet:
 

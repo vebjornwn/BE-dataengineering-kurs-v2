@@ -10,7 +10,7 @@ Målet er å kombinere landinger, fartøydata, havforhold og kalenderdata og til
 
 > **landet kg neste uke per art og fangstområde**
 
-Kurset bruker torsk, hyse og sei gjennom hele 2024.
+Kurset bruker torsk, hyse og sei gjennom hele 2024, med januar 2025 som holdout-periode for prognosen.
 
 ## Dataflyt
 
@@ -85,7 +85,7 @@ DAB er distribusjonsmekanismen, men er bevisst **ikke** en kritisk avhengighet f
 
 ## Kursdata
 
-Repoet inneholder et lite, frosset uttrekk av faktiske 2024-data slik at workshopen er reproducerbar og ikke er avhengig av eksterne API-er under gjennomføring.
+Repoet inneholder et lite, frosset uttrekk av faktiske data fra 2024 og januar 2025 slik at workshopen er reproducerbar og ikke er avhengig av eksterne API-er under gjennomføring.
 
 Landingene og fartøyopplysningene kommer fra Fiskeridirektoratets åpne fangstdata koblet med fartøydata. Fartøybredde berikes fra merkeregisteret, og havforhold kommer fra Open-Meteo Marine. Se `forberedelser/KILDER.md` for kilder, avgrensninger og regenerering.
 
@@ -95,7 +95,7 @@ Uttrekket kan regenereres fra åpne kilder før gjennomføring med `forberedelse
 
 Alle bruker samme Random Forest.
 
-Resultatet evalueres på siste del av 2024 med:
+Modellen trenes på 2024 og resultatet evalueres på fire rullerende ukeprognoser i januar 2025 med:
 
 - MAE
 - RMSE

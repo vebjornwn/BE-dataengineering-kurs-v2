@@ -34,7 +34,12 @@ CACHE = ROOT / "forberedelser" / "cache"
 OUT.mkdir(parents=True, exist_ok=True)
 CACHE.mkdir(parents=True, exist_ok=True)
 
-FANGST_URL = "https://register.fiskeridir.no/uttrekk/fangstdata_2024.csv.zip"
+FANGST_URLS = {
+    2024: "https://register.fiskeridir.no/uttrekk/fangstdata_2024.csv.zip",
+    2025: "https://register.fiskeridir.no/uttrekk/fangstdata_2025.csv.zip",
+}
+DATA_START = "2024-01-01"
+DATA_END = "2025-02-02"
 
 FARTOY_URL = (
     "https://www.fiskeridir.no/statistikk-tall-og-analyse/"
@@ -94,75 +99,75 @@ def to_number(values: pd.Series) -> pd.Series:
 
 
 def bygg_landinger() -> pd.DataFrame:
-    """Lag et lite, sesongdekkende uttrekk av 2024-fangstdata."""
+    """Lag et lite uttrekk for trening i 2024 og test i januar 2025."""
 
-    zip_path = download(FANGST_URL, CACHE / "fangstdata_2024.csv.zip")
+    selected = []
+    for year, url in FANGST_URLS.items():
+        zip_path = download(url, CACHE / f"fangstdata_{year}.csv.zip")
 
-    with zipfile.ZipFile(zip_path) as zf:
-        csv_names = [n for n in zf.namelist() if n.lower().endswith(".csv")]
-        if len(csv_names) != 1:
-            raise RuntimeError(f"Forventet én CSV i zip, fant: {csv_names}")
+        with zipfile.ZipFile(zip_path) as zf:
+            csv_names = [n for n in zf.namelist() if n.lower().endswith(".csv")]
+            if len(csv_names) != 1:
+                raise RuntimeError(f"Forventet én CSV i zip, fant: {csv_names}")
 
-        with zf.open(csv_names[0]) as f:
-            chunks = pd.read_csv(
-                f,
-                sep=";",
-                dtype=str,
-                chunksize=200_000,
-                low_memory=False,
-            )
+            with zf.open(csv_names[0]) as f:
+                for chunk in pd.read_csv(
+                    f,
+                    sep=";",
+                    dtype=str,
+                    chunksize=200_000,
+                    low_memory=False,
+                ):
+                    required = [
+                        "Dokumentnummer",
+                        "Salgslag (kode)",
+                        "Linjenummer",
+                        "Landingsdato",
+                        "Fartøy ID",
+                        "Registreringsmerke (seddel)",
+                        "Fartøynavn",
+                        "Fartøytype",
+                        "Fartøykommune",
+                        "Fartøynasjonalitet",
+                        "Største lengde",
+                        "Lengdegruppe",
+                        "Bruttotonnasje 1969",
+                        "Bruttotonnasje annen",
+                        "Byggeår",
+                        "Motorkraft",
+                        "Art FAO (kode)",
+                        "Art FAO",
+                        "Hovedområde (kode)",
+                        "Hovedområde",
+                        "Redskap (kode)",
+                        "Rundvekt",
+                    ]
 
-            selected = []
+                    missing = [c for c in required if c not in chunk.columns]
+                    if missing:
+                        raise RuntimeError(
+                            "Fiskeridirektoratet har endret schema. "
+                            f"Mangler kolonner: {missing}"
+                        )
 
-            for chunk in chunks:
-                required = [
-                    "Dokumentnummer",
-                    "Salgslag (kode)",
-                    "Linjenummer",
-                    "Landingsdato",
-                    "Fartøy ID",
-                    "Registreringsmerke (seddel)",
-                    "Fartøynavn",
-                    "Fartøytype",
-                    "Fartøykommune",
-                    "Fartøynasjonalitet",
-                    "Største lengde",
-                    "Lengdegruppe",
-                    "Bruttotonnasje 1969",
-                    "Bruttotonnasje annen",
-                    "Byggeår",
-                    "Motorkraft",
-                    "Art FAO (kode)",
-                    "Art FAO",
-                    "Hovedområde (kode)",
-                    "Hovedområde",
-                    "Redskap (kode)",
-                    "Rundvekt",
-                ]
-
-                missing = [c for c in required if c not in chunk.columns]
-                if missing:
-                    raise RuntimeError(
-                        "Fiskeridirektoratet har endret schema. "
-                        f"Mangler kolonner: {missing}"
+                    x = chunk[required].copy()
+                    x["Art FAO (kode)"] = (
+                        x["Art FAO (kode)"].astype(str).str.strip()
+                    )
+                    x["Hovedområde (kode)"] = (
+                        x["Hovedområde (kode)"]
+                        .astype(str)
+                        .str.replace(".0", "", regex=False)
+                        .str.zfill(2)
                     )
 
-                x = chunk[required].copy()
-                x["Art FAO (kode)"] = x["Art FAO (kode)"].astype(str).str.strip()
-                x["Hovedområde (kode)"] = (
-                    x["Hovedområde (kode)"]
-                    .astype(str)
-                    .str.replace(".0", "", regex=False)
-                    .str.zfill(2)
-                )
+                    x = x[
+                        x["Art FAO (kode)"].isin(ARTER)
+                        & x["Hovedområde (kode)"].isin(HOVEDOMRADER)
+                    ]
 
-                x = x[
-                    x["Art FAO (kode)"].isin(ARTER)
-                    & x["Hovedområde (kode)"].isin(HOVEDOMRADER)
-                ]
-
-                if not x.empty:
-                    selected.append(x)
+                    if not x.empty:
+                        selected.append(x)
 
     if not selected:
         raise RuntimeError("Ingen rader matchet art/område-filteret.")
@@ -174,12 +179,17 @@ def bygg_landinger() -> pd.DataFrame:
         dayfirst=True,
         errors="coerce",
     )
-    df = df[df["Landingsdato_dt"].dt.year == 2024].copy()
+    df = df[
+        df["Landingsdato_dt"].between(DATA_START, DATA_END, inclusive="both")
+    ].copy()
 
-    df["uke"] = df["Landingsdato_dt"].dt.isocalendar().week.astype(int)
+    df["uke_start"] = (
+        df["Landingsdato_dt"]
+        - pd.to_timedelta(df["Landingsdato_dt"].dt.weekday, unit="D")
+    )
     df["Rundvekt_num"] = to_number(df["Rundvekt"])
 
-    grain = ["uke", "Art FAO (kode)", "Hovedområde (kode)"]
+    grain = ["uke_start", "Art FAO (kode)", "Hovedområde (kode)"]
     sort_columns = grain + ["Landingsdato_dt", "Dokumentnummer", "Linjenummer"]
 
     # Åtte gyldige varelinjer per uke x art x hovedområde gir et kompakt uttrekk
@@ -229,7 +239,7 @@ def bygg_landinger() -> pd.DataFrame:
         }
     )
 
-    path = OUT / "landinger_2024.csv"
+    path = OUT / "landinger_kurs.csv"
     out.to_csv(path, sep=";", index=False, encoding="utf-8")
     print(f"Skrev {len(out):,} rader -> {path}")
 
@@ -273,16 +283,17 @@ def bygg_fartoy(fangstuttrekk: pd.DataFrame) -> None:
     xlsx_path = download(FARTOY_URL, CACHE / "fartoy_eier.xlsx")
     excel = pd.ExcelFile(xlsx_path)
 
-    sheet = "2024" if "2024" in excel.sheet_names else next(
-        (s for s in excel.sheet_names if "2024" in str(s)),
-        None,
-    )
-    if sheet is None:
+    sheets = [year for year in ["2025", "2024"] if year in excel.sheet_names]
+    if not sheets:
         raise RuntimeError(
-            f"Fant ikke årsark 2024. Ark: {excel.sheet_names}"
+            f"Fant ikke årsark 2024/2025. Ark: {excel.sheet_names}"
         )
 
-    df = pd.read_excel(xlsx_path, sheet_name=sheet)
+    year_frames = pd.read_excel(xlsx_path, sheet_name=sheets)
+    df = pd.concat(
+        [year_frames[year].assign(_register_aar=int(year)) for year in sheets],
+        ignore_index=True,
+    ).sort_values("_register_aar", ascending=False)
 
     id_col = first_existing(df.columns, ["Fartøy ID"])
     width_col = first_existing(df.columns, ["Bredde"])
@@ -338,7 +349,7 @@ def bygg_fartoy(fangstuttrekk: pd.DataFrame) -> None:
         }
     ).sort_values("Fartøy ID")
 
-    path = OUT / "fartoy_2024.csv"
+    path = OUT / "fartoy_kurs.csv"
     out.to_csv(path, index=False, encoding="utf-8")
     print(f"Skrev {len(out):,} rader -> {path}")
 
@@ -357,8 +368,8 @@ def bygg_havforhold() -> None:
         params = {
             "latitude": lat,
             "longitude": lon,
-            "start_date": "2024-01-01",
-            "end_date": "2024-12-31",
+            "start_date": DATA_START,
+            "end_date": DATA_END,
             "hourly": (
                 "sea_surface_temperature,"
                 "wave_height,"
@@ -416,7 +427,7 @@ def bygg_havforhold() -> None:
                 }
             )
 
-    path = OUT / "havforhold_2024.jsonl"
+    path = OUT / "havforhold_kurs.jsonl"
     with path.open("w", encoding="utf-8") as f:
         for row in rows:
             f.write(json.dumps(row, ensure_ascii=False) + "\n")
@@ -425,7 +436,7 @@ def bygg_havforhold() -> None:
 
 
 def bygg_kalender() -> None:
-    dates = pd.date_range("2024-01-01", "2024-12-31", freq="D")
+    dates = pd.date_range(DATA_START, DATA_END, freq="D")
 
     holidays = {
         "2024-01-01",
@@ -438,6 +449,7 @@ def bygg_kalender() -> None:
         "2024-05-20",
         "2024-12-25",
         "2024-12-26",
+        "2025-01-01",
     }
 
     df = pd.DataFrame({"dato": dates})
@@ -462,7 +474,7 @@ def bygg_kalender() -> None:
     df["dato"] = df["dato"].dt.strftime("%Y-%m-%d")
     df["uke_start"] = df["uke_start"].dt.strftime("%Y-%m-%d")
 
-    path = OUT / "kalender_2024.csv"
+    path = OUT / "kalender_kurs.csv"
     df.to_csv(path, index=False, encoding="utf-8")
     print(f"Skrev {len(df):,} rader -> {path}")
 

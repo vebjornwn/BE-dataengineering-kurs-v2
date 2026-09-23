@@ -65,6 +65,7 @@ spark_df = spark.read.table(
 # COMMAND ----------
 
 df = spark_df.toPandas()
+df["target_uke_start"] = pd.to_datetime(df["target_uke_start"])
 
 print("Antall rader:", len(df))
 print("Kolonner:", list(df.columns))
@@ -74,10 +75,14 @@ print("Kolonner:", list(df.columns))
 # MAGIC %md
 # MAGIC ## Oppgave 4b – train/test
 # MAGIC
-# MAGIC Vi simulerer at vi står ved inngangen til de siste ukene av året:
+# MAGIC Vi evaluerer modellen som en rullerende én-ukesprognose:
 # MAGIC
-# MAGIC - uke 1–43 brukes til trening
-# MAGIC - uke 44–51 brukes til test
+# MAGIC - alle brukbare, hele target-uker i 2024 brukes til trening
+# MAGIC - ukene med start 6., 13., 20. og 27. januar 2025 brukes til test
+# MAGIC
+# MAGIC For hver januaruke bruker modellen bare informasjon som var kjent ved
+# MAGIC slutten av uken før. Januar-observasjonene brukes aldri til å trene modellen,
+# MAGIC men tidligere januaruker kan være features i en senere rullerende prognose.
 # MAGIC
 # MAGIC Vi fjerner først rader der lag-features eller target mangler.
 
@@ -121,10 +126,13 @@ model_df = (
 
 # COMMAND ----------
 
-train_df = model_df[model_df["ukenummer"] <= 43].copy()
+train_df = model_df[
+    (model_df["target_aar"] == 2024) &
+    (model_df["target_uke_start"] <= pd.Timestamp("2024-12-23"))
+].copy()
 test_df = model_df[
-    (model_df["ukenummer"] >= 44) &
-    (model_df["ukenummer"] <= 51)
+    (model_df["target_aar"] == 2025) &
+    (model_df["target_maaned"] == 1)
 ].copy()
 
 X_train = train_df[feature_cols]
@@ -199,6 +207,7 @@ print(f"WMAPE: {wmape:.2f}%")
 prediksjoner = test_df[
     [
         "uke_start",
+        "target_uke_start",
         "art_kode",
         "art_navn",
         "fangstomrade_kode",
@@ -226,16 +235,16 @@ spark.createDataFrame(prediksjoner).write.mode("overwrite").saveAsTable(
 
 plot_df = (
     prediksjoner
-        .groupby("uke_start", as_index=False)[
+        .groupby("target_uke_start", as_index=False)[
             [target_col, "predikert_kg_neste_uke"]
         ]
         .sum()
 )
 
 plt.figure(figsize=(10, 5))
-plt.plot(plot_df["uke_start"], plot_df[target_col], marker="o", label="Faktisk")
-plt.plot(plot_df["uke_start"], plot_df["predikert_kg_neste_uke"], marker="o", label="Predikert")
-plt.xlabel("Uke")
+plt.plot(plot_df["target_uke_start"], plot_df[target_col], marker="o", label="Faktisk")
+plt.plot(plot_df["target_uke_start"], plot_df["predikert_kg_neste_uke"], marker="o", label="Predikert")
+plt.xlabel("Uken som predikeres")
 plt.ylabel("Kg")
 plt.title("Faktisk vs. predikert landingsmengde")
 plt.legend()

@@ -91,7 +91,7 @@ def csv_til_bronze_variant(path: str, delimiter: str = ","):
 # MAGIC %md
 # MAGIC ## Oppgave 1a – landingsdata
 # MAGIC
-# MAGIC Les `landinger_2024.csv` og skriv dataene til:
+# MAGIC Les `landinger_kurs.csv` og skriv dataene til:
 # MAGIC
 # MAGIC ```text
 # MAGIC <catalog>.bronze.landinger_raw
@@ -125,7 +125,7 @@ def csv_til_bronze_variant(path: str, delimiter: str = ","):
 # COMMAND ----------
 
 landinger_raw = csv_til_bronze_variant(
-    f"{volume_path}/landinger_2024.csv",
+    f"{volume_path}/landinger_kurs.csv",
     delimiter=";",
 )
 
@@ -142,8 +142,8 @@ display(landinger_raw.limit(10))
 # MAGIC
 # MAGIC Gjør det samme for:
 # MAGIC
-# MAGIC - `fartoy_2024.csv -> bronze.fartoy_raw`
-# MAGIC - `kalender_2024.csv -> bronze.kalender_raw`
+# MAGIC - `fartoy_kurs.csv -> bronze.fartoy_raw`
+# MAGIC - `kalender_kurs.csv -> bronze.kalender_raw`
 # MAGIC
 # MAGIC Begge er kommaseparerte CSV-filer.
 
@@ -159,8 +159,8 @@ display(landinger_raw.limit(10))
 # COMMAND ----------
 
 for filename, table in [
-    ("fartoy_2024.csv", "fartoy_raw"),
-    ("kalender_2024.csv", "kalender_raw"),
+    ("fartoy_kurs.csv", "fartoy_raw"),
+    ("kalender_kurs.csv", "kalender_raw"),
 ]:
     df = csv_til_bronze_variant(f"{volume_path}/{filename}")
 
@@ -205,7 +205,7 @@ for filename, table in [
 # COMMAND ----------
 
 havforhold_raw = (
-    spark.read.text(f"{volume_path}/havforhold_2024.jsonl")
+    spark.read.text(f"{volume_path}/havforhold_kurs.jsonl")
         .select(
             F.expr("parse_json(value)").alias("payload"),
             F.current_timestamp().alias("_ingest_tidspunkt"),
