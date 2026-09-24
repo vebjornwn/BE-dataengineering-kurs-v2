@@ -99,7 +99,7 @@ def to_number(values: pd.Series) -> pd.Series:
 
 
 def bygg_landinger() -> pd.DataFrame:
-    """Lag et lite uttrekk for trening i 2024 og test i januar 2025."""
+    """Lag et lite uttrekk for trening i 2024 og test i desember 2024."""
 
     selected = []
     for year, url in FANGST_URLS.items():

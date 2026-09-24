@@ -119,7 +119,7 @@ for navn, df in [
     ("dim_fartoy", dim_fartoy),
     ("dim_dato", dim_dato),
 ]:
-    df.write.mode("overwrite").saveAsTable(f"{catalog}.gold.{navn}")
+    df.write.mode("overwrite").option("overwriteSchema", "true").saveAsTable(f"{catalog}.gold.{navn}")
 
 # COMMAND ----------
 
@@ -161,7 +161,7 @@ fact_landinger = (
         )
 )
 
-fact_landinger.write.mode("overwrite").saveAsTable(
+fact_landinger.write.mode("overwrite").option("overwriteSchema", "true").saveAsTable(
     f"{catalog}.gold.fact_landinger"
 )
 
@@ -314,7 +314,7 @@ mart_fangst_uke = (
         )
 )
 
-mart_fangst_uke.write.mode("overwrite").saveAsTable(
+mart_fangst_uke.write.mode("overwrite").option("overwriteSchema", "true").saveAsTable(
     f"{catalog}.gold.mart_fangst_uke"
 )
 
@@ -409,7 +409,7 @@ mart_fangstprognose = (
         )
 )
 
-mart_fangstprognose.write.mode("overwrite").saveAsTable(
+mart_fangstprognose.write.mode("overwrite").option("overwriteSchema", "true").saveAsTable(
     f"{catalog}.gold.mart_fangstprognose"
 )
 

@@ -10,7 +10,7 @@ Målet er å kombinere landinger, fartøydata, havforhold og kalenderdata og til
 
 > **landet kg neste uke per art og fangstområde**
 
-Kurset bruker torsk, hyse og sei gjennom hele 2024, med januar 2025 som holdout-periode for prognosen.
+Kurset bruker torsk, hyse og sei gjennom hele 2024, med desember 2024 som holdout-periode for prognosen.
 
 ## Dataflyt
 
@@ -93,7 +93,7 @@ Uttrekket kan regenereres fra åpne kilder før gjennomføring med `forberedelse
 
 ## Modellevaluering
 
-Modellen trenes på 2024 og resultatet evalueres på fire rullerende ukeprognoser i januar 2025 med:
+Modellen trenes på 2024 og resultatet evalueres på fire rullerende ukeprognoser i desember 2024 med:
 
 - MAE
 - RMSE

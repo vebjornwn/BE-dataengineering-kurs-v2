@@ -3,6 +3,7 @@
 # [tool.databricks.environment]
 # environment_version = "5"
 # ///
+# DBTITLE 1,Oppgave 1 – Bronze
 # MAGIC %md
 # MAGIC # Oppgave 1 – Bronze
 # MAGIC
@@ -23,7 +24,7 @@
 # MAGIC
 # MAGIC - Én kilderad er en varelinje på et landingsdokument.
 # MAGIC - Uttrekket dekker torsk, hyse og sei i seks fangstområder.
-# MAGIC - 2024 brukes til trening. Fire hele uker i januar 2025 brukes som holdout.
+# MAGIC - 2024 brukes til trening. Fire hele uker i desember 2024 brukes som holdout.
 # MAGIC - Dataene inneholder faktisk kobling mellom landing og fartøy via `Fartøy ID`.
 # MAGIC - Fartøydata omfatter blant annet type, lengde, bredde, bruttotonnasje,
 # MAGIC   byggeår, motorkraft, hjemkommune og nasjonalitet.

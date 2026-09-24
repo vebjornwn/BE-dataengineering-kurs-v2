@@ -20,7 +20,7 @@ Kilden er UTF-8 CSV med semikolon og én fil per fangstår.
 
 For kursversjonen brukes et lite, sesongdekkende uttrekk:
 
-- 2024 til trening og data til og med 2. februar 2025 for å evaluere fire hele januaruker
+- 2024 til trening og data til og med 2. februar 2025 for å evaluere fire hele desemberuker
 - torsk, hyse og sei
 - utvalgte fangstområder
 - inntil åtte gyldige varelinjer per uke, art og fangstområde
