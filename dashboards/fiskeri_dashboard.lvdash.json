@@ -489,7 +489,7 @@
           },
           "position": {
             "x": 0,
-            "y": 8,
+            "y": 13,
             "width": 6,
             "height": 5
           }
@@ -514,6 +514,14 @@
                     {
                       "name": "serie",
                       "expression": "`serie`"
+                    },
+                    {
+                      "name": "art_navn",
+                      "expression": "`art_navn`"
+                    },
+                    {
+                      "name": "serie_art",
+                      "expression": "CONCAT(`serie`, ' \\u2013 ', `art_navn`)"
                     }
                   ],
                   "disaggregated": false,
@@ -530,7 +538,7 @@
               "version": 3,
               "frame": {
                 "showTitle": true,
-                "title": "Faktisk vs. predikert landingsmengde"
+                "title": "Faktisk vs. predikert per art"
               },
               "widgetType": "line",
               "encodings": {
@@ -539,6 +547,83 @@
                   "displayName": "Uke",
                   "scale": {
                     "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(kg)",
+                  "displayName": "Kg",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "serie_art",
+                  "displayName": "Serie – Art",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "legend": {
+                    "position": "bottom"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 8,
+            "width": 8,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "faktisk_vs_predikert_art_bar",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "prognose",
+                  "fields": [
+                    {
+                      "name": "art_navn",
+                      "expression": "`art_navn`"
+                    },
+                    {
+                      "name": "sum(kg)",
+                      "expression": "SUM(`kg`)"
+                    },
+                    {
+                      "name": "serie",
+                      "expression": "`serie`"
+                    }
+                  ],
+                  "disaggregated": false,
+                  "orders": [
+                    {
+                      "direction": "ASC",
+                      "expression": "`art_navn`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "showTitle": true,
+                "title": "Faktisk vs. predikert total per art"
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "art_navn",
+                  "displayName": "Art",
+                  "scale": {
+                    "type": "categorical"
                   }
                 },
                 "y": {
@@ -565,9 +650,9 @@
             }
           },
           "position": {
-            "x": 6,
+            "x": 8,
             "y": 8,
-            "width": 6,
+            "width": 4,
             "height": 5
           }
         }
