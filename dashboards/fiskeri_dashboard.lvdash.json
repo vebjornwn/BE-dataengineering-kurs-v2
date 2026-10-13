@@ -514,14 +514,6 @@
                     {
                       "name": "serie",
                       "expression": "`serie`"
-                    },
-                    {
-                      "name": "art_navn",
-                      "expression": "`art_navn`"
-                    },
-                    {
-                      "name": "serie_art",
-                      "expression": "CONCAT(`serie`, ' \\u2013 ', `art_navn`)"
                     }
                   ],
                   "disaggregated": false,
@@ -538,7 +530,7 @@
               "version": 3,
               "frame": {
                 "showTitle": true,
-                "title": "Faktisk vs. predikert per art"
+                "title": "Faktisk vs. predikert for valgte arter"
               },
               "widgetType": "line",
               "encodings": {
@@ -557,8 +549,8 @@
                   }
                 },
                 "color": {
-                  "fieldName": "serie_art",
-                  "displayName": "Serie – Art",
+                  "fieldName": "serie",
+                  "displayName": "Serie",
                   "scale": {
                     "type": "categorical"
                   },
