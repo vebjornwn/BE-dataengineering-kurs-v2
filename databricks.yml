@@ -9,6 +9,8 @@ variables:
     description: SQL warehouse som brukes av AI/BI-dashboardet
     lookup:
       warehouse: "Serverless Starter Warehouse"
+  catalog_name:
+    description: Katalogen der kursnotebookene oppretter bronze, silver og gold (SELECT current_catalog())
 
 sync:
   include:

@@ -50,9 +50,13 @@ print(f"- {catalog}.gold.prediksjoner")
 # MAGIC Dashboardet bruker:
 # MAGIC
 # MAGIC ```text
-# MAGIC gold.mart_fangst_uke
-# MAGIC gold.prediksjoner
+# MAGIC <katalog>.gold.mart_fangst_uke
+# MAGIC <katalog>.gold.prediksjoner
 # MAGIC ```
+# MAGIC
+# MAGIC `<katalog>` er verdien du satte som `catalog_name` i `databricks.yml`
+# MAGIC før bundle-deploymenten. Den må være lik katalogen som vises i cellen over.
+# MAGIC Hvis den ikke er det, rett verdien og deploy bundlen på nytt.
 
 # COMMAND ----------
 
@@ -87,8 +91,12 @@ print(f"- {catalog}.gold.prediksjoner")
 # MAGIC 1. velg **Deploy**
 # MAGIC 2. åpne **View deployed**
 # MAGIC 3. kontroller at endringen vises
+# MAGIC 4. kontroller at begge datasettene viser data
 # MAGIC
 # MAGIC Dashboardet er en del av bundle-deploymenten, så endringen deployes på samme måte som andre Databricks-resurser.
+# MAGIC Hvis alle widgeter feiler, kontroller først at `catalog_name` peker på
+# MAGIC katalogen med Gold-tabellene. Ved deling er det det publiserte dashboardet
+# MAGIC som bruker deployerens datarettigheter; i **Edit draft** brukes dine egne.
 
 # COMMAND ----------
 

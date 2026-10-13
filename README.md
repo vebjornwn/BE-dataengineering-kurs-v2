@@ -63,9 +63,30 @@ Ingen lokal Python, Spark, Git eller Databricks CLI er nødvendig.
 1. Åpne **Workspace**
 2. Velg **Create → Git folder**
 3. Klon dette repoet
-4. Deploy `dev`-targetet fra bundle-visningen
-5. Kjør bootstrap-jobben
-6. Åpne `oppgaver/01_bronze.py`
+4. Åpne SQL Editor med **Serverless Starter Warehouse** og kjør `SELECT current_catalog();`
+5. Sett resultatet som `default` under `variables.catalog_name` i `databricks.yml` i din Git folder, for eksempel:
+
+   ```yaml
+   catalog_name:
+     description: Katalogen der kursnotebookene oppretter bronze, silver og gold
+     default: din_katalog
+   ```
+
+6. Deploy `dev`-targetet fra bundle-visningen
+7. Kjør bootstrap-jobben og kontroller at `Bruker katalog:` viser samme katalog
+8. Åpne `oppgaver/01_bronze.py`
+
+Dashboardet bruker denne katalogen og schemaet `gold`. Uten riktig katalogvalg kan
+spørringene havne i `hive_metastore.gold` selv om notebookene har skrevet
+tabellene et annet sted. Kursdashboardet publiseres med deployerens
+datarettigheter, slik at deltakere som får tilgang til det publiserte
+dashboardet kan se kursdata uten egne `SELECT`-rettigheter. I en dashboard-draft
+brukes fortsatt hver visers egne datarettigheter.
+
+Ved feil i et eksisterende dashboard: oppdater Git folder fra repoet, sett
+`catalog_name` til katalogen som inneholder `gold.mart_fangst_uke` og
+`gold.prediksjoner`, deploy på nytt og åpne **View deployed**. Hvis en av
+tabellene mangler, fullfør Gold- og ML-oppgavene før ny kontroll.
 
 ### Fallback
 
