@@ -11,6 +11,7 @@ variables:
       warehouse: "Serverless Starter Warehouse"
   catalog_name:
     description: Katalogen der kursnotebookene oppretter bronze, silver og gold (SELECT current_catalog())
+    default: workspace
 
 sync:
   include:
